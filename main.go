@@ -82,16 +82,21 @@ func getTimeFromHTTPHeader(url string) (time.Time, time.Duration, int, error) {
 	return serverTime, rtt, resp.StatusCode, nil
 }
 
+func querySNTPTime(server string) (*ntp.Response, time.Duration, error) {
+	return queryNTPTime(server)
+}
+
 func main() {
 	app := cli.App("timeclient", "A simple time client to fetch and optionally set system time")
 	app.LongDesc = "A simple NTP client to fetch and optionally set system time. It can be used to query an NTP server for the current time and set the system time to the retrieved time.\nhttps://github.com/earentir/ntpcl"
-	app.Version("v version", "0.2.3")
+	app.Version("v version", "0.3.7")
 
 	var (
-		ntpServer    = app.StringOpt("ntp-server n", "europe.pool.ntp.org", "NTP server to query")
-		httpURL      = app.StringOpt("url u", "", "URL to query for time from HTTP header")
-		setTime      = app.BoolOpt("set s", false, "Set the system time")
-		highAccuracy = app.BoolOpt("high-accuracy h", false, "Use high accuracy mode")
+		ntpServer         = app.StringOpt("ntp-server n", "europe.pool.ntp.org", "NTP server to query")
+		httpURL           = app.StringOpt("url u", "", "URL to query for time from HTTP header")
+		setTime           = app.BoolOpt("set s", false, "Set the system time")
+		highAccuracy      = app.BoolOpt("high-accuracy h", false, "Use high accuracy mode")
+		windowsTimeServer = app.StringOpt("windows-time-server w", "", "Windows Time Server to query")
 	)
 
 	app.Action = func() {
@@ -115,23 +120,39 @@ func main() {
 			fmt.Printf("WEB   : %v\n", serverTime)
 			fmt.Printf("RTT   : %v\n", roundTripTime)
 		} else {
-			serverIP, err := getServerIP(*ntpServer)
-			if err != nil {
-				log.Fatalf("Failed to get IP address for NTP server: %v", err)
+			var ntpServerToUse string
+			var response *ntp.Response
+			var rtt time.Duration
+			var queryMethod string
+
+			if *windowsTimeServer != "" {
+				ntpServerToUse = *windowsTimeServer
+			} else {
+				ntpServerToUse = *ntpServer
 			}
 
-			response, rtt, err := queryNTPTime(*ntpServer)
+			serverIP, err := getServerIP(ntpServerToUse)
 			if err != nil {
-				log.Fatalf("Failed to query NTP server: %v", err)
+				log.Fatalf("Failed to get IP address for server: %v", err)
+			}
+
+			response, rtt, err = queryNTPTime(ntpServerToUse)
+			queryMethod = "NTP"
+			if err != nil {
+				response, rtt, err = querySNTPTime(ntpServerToUse)
+				queryMethod = "SNTP"
+				if err != nil {
+					log.Fatalf("Failed to query server using NTP and SNTP: %v", err)
+				}
 			}
 
 			serverTime = time.Now().Add(response.ClockOffset)
 
-			// Print the NTP response details
-			fmt.Printf("NTP   : %v\n", serverTime)
+			// Print the NTP/SNTP response details
+			fmt.Printf("%s   : %v\n", queryMethod, serverTime)
 			fmt.Printf("Local : %v\n", time.Now())
 			fmt.Printf("RTT   : %v\n", rtt)
-			fmt.Printf("NTP server: %s (%s)\n", *ntpServer, serverIP)
+			fmt.Printf("Server: %s (%s)\n", ntpServerToUse, serverIP)
 			fmt.Printf("Stratum: %d\n", response.Stratum)
 			fmt.Printf("Precision: %d\n", response.Precision)
 			fmt.Printf("Root Delay: %v\n", response.RootDelay)
@@ -144,9 +165,9 @@ func main() {
 				fmt.Println("High accuracy mode enabled. Gathering multiple samples...")
 				var offsets []time.Duration
 				for i := 0; i < 8; i++ {
-					sampleResponse, _, err := queryNTPTime(*ntpServer)
+					sampleResponse, _, err := queryNTPTime(ntpServerToUse)
 					if err != nil {
-						log.Fatalf("Failed to query NTP server: %v", err)
+						log.Fatalf("Failed to query server: %v", err)
 					}
 					offsets = append(offsets, sampleResponse.ClockOffset)
 					time.Sleep(500 * time.Millisecond)
@@ -161,7 +182,7 @@ func main() {
 				serverTime = time.Now().Add(averageOffset)
 
 				fmt.Printf("Average offset: %v\n", averageOffset)
-				fmt.Printf("Adjusted NTP time: %v\n", serverTime)
+				fmt.Printf("Adjusted time: %v\n", serverTime)
 			}
 		}
 
@@ -169,7 +190,7 @@ func main() {
 		if *httpURL != "" {
 			fmt.Printf("Local : %v\n", localTime)
 		} else {
-			fmt.Printf("NTP   : %v\n", serverTime)
+			fmt.Printf("Time  : %v\n", serverTime)
 			fmt.Printf("Local : %v\n", localTime)
 		}
 
