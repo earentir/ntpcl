@@ -12,7 +12,7 @@ import (
 func main() {
 	app := cli.App("timeclient", "A simple time client to fetch and optionally set system time")
 	app.LongDesc = "A simple time client to fetch and optionally set system time. It can be used to query an NTP server, HTTP server, Daytime Protocol server, or Time Protocol server for the current time and set the system time to the retrieved time.\nhttps://github.com/earentir/ntpcl"
-	app.Version("v version", "0.3.7")
+	app.Version("v version", "0.4.11")
 
 	var (
 		ntpServer          = app.StringOpt("ntp-server n", "europe.pool.ntp.org", "NTP server to query")
