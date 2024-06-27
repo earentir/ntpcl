@@ -24,7 +24,7 @@ Poll interval: 8s
 
 ### Set Time to NTP Server
 ```bash
-./ntpcl -t
+./ntpcl -s
 ```
 ```bash
 NTP   : 2024-06-26 23:44:48.532935783 +0300 EEST m=+0.095169689
@@ -41,9 +41,9 @@ System time updated successfully
 New local system time: 2024-06-26 23:44:48.536349515 +0300 EEST m=+0.179418170
 Time difference after setting: 84.248481ms
 ```
-### Set Time to Custom NTP Server 
+### Set Time to Custom NTP Server
 ```bash
-./ntpcl -t -s europe.pool.ntp.org
+./ntpcl -s -n europe.pool.ntp.org
 ```
 ```bash
 NTP   : 2024-06-26 23:45:34.414975883 +0300 EEST m=+0.137681722
@@ -63,7 +63,7 @@ Time difference after setting: -30.495434ms
 
 ### High Accuracy Mode
 ```bash
-./ntpcl -t -s europe.pool.ntp.org -a
+./ntpcl -s -n europe.pool.ntp.org -h
 ```
 ```bash
 NTP   : 2024-06-26 23:46:37.747730162 +0300 EEST m=+0.116907113
@@ -82,4 +82,19 @@ Adjusted NTP time: 2024-06-26 23:46:42.212707382 +0300 EEST m=+4.581884334
 System time updated successfully
 New local system time: 2024-06-26 23:46:42.216784924 +0300 EEST m=+4.577605048
 Time difference after setting: -4.279286ms
+```
+
+### Web Time
+```bash
+./ntpcl -u https://google.com
+```
+```bash
+Querying time from HTTP server: https://google.com
+Status Code: 200
+WEB   : 2024-06-27 14:53:10 +0000 GMT
+RTT   : 1.122863309s
+Local : 2024-06-27 17:53:11.276849997 +0300 EEST m=+1.123107442
+Time difference: -1.276849997s
+RTT   : 1.122863309s
+Retrieved from HTTP server: https://google.co
 ```
