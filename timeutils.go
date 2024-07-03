@@ -118,9 +118,13 @@ func fetchTimeFromNTP(ntpServer, windowsTimeServer string, highAccuracy bool) (t
 		ntpServerToUse = ntpServer
 	}
 
-	serverIP, err := getServerIP(ntpServerToUse)
-	if err != nil {
-		return time.Time{}, 0, fmt.Errorf("failed to get IP address for server: %v", err)
+	// Check if ntpServerToUse is an IP address
+	if net.ParseIP(ntpServerToUse) == nil {
+		// If it's not an IP address, resolve the hostname
+		ntpServerToUse, err = getServerIP(ntpServerToUse)
+		if err != nil {
+			return time.Time{}, 0, fmt.Errorf("failed to get IP address for server: %v", err)
+		}
 	}
 
 	response, rtt, err := queryNTPTime(ntpServerToUse)
@@ -134,7 +138,7 @@ func fetchTimeFromNTP(ntpServer, windowsTimeServer string, highAccuracy bool) (t
 	}
 
 	serverTime = time.Now().Add(response.ClockOffset)
-	printNTPDetails(queryMethod, serverTime, rtt, ntpServerToUse, serverIP, response)
+	printNTPDetails(queryMethod, serverTime, rtt, ntpServerToUse, ntpServerToUse, response)
 
 	if highAccuracy {
 		serverTime, err = gatherHighAccuracyTime(ntpServerToUse)
