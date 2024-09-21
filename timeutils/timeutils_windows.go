@@ -1,7 +1,7 @@
 //go:build windows
 // +build windows
 
-package main
+package timeutils
 
 import (
 	"syscall"
@@ -9,8 +9,8 @@ import (
 	"unsafe"
 )
 
-// setSystemTime sets the system time on Windows using the Windows API.
-func setSystemTime(t time.Time) error {
+// SetSystemTime sets the system time on Windows using the Windows API.
+func SetSystemTime(t time.Time) error {
 	utc := t.UTC()
 	systemTime := syscall.Systemtime{
 		Year:         uint16(utc.Year()),

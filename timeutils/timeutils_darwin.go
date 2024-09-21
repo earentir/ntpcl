@@ -1,15 +1,15 @@
 //go:build darwin
 // +build darwin
 
-package main
+package timeutils
 
 import (
 	"syscall"
 	"time"
 )
 
-// setSystemTime sets the system time on macOS using the Darwin syscall.
-func setSystemTime(t time.Time) error {
+// SetSystemTime sets the system time on macOS using the Darwin syscall.
+func SetSystemTime(t time.Time) error {
 	utc := t.UTC()
 	tv := syscall.Timeval{
 		Sec:  utc.Unix(),
