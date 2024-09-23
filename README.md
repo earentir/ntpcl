@@ -24,7 +24,7 @@ Poll interval: 8s
 
 ### Set Time to NTP Server
 ```bash
-./ntpcl -s
+./ntpcl --set
 ```
 ```bash
 NTP   : 2024-06-26 23:44:48.532935783 +0300 EEST m=+0.095169689
