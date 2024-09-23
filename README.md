@@ -43,7 +43,7 @@ Time difference after setting: 84.248481ms
 ```
 ### Set Time to Custom NTP Server
 ```bash
-./ntpcl -s -n europe.pool.ntp.org
+./ntpcl --ntp-server europe.pool.ntp.org --set
 ```
 ```bash
 NTP   : 2024-06-26 23:45:34.414975883 +0300 EEST m=+0.137681722
@@ -63,7 +63,7 @@ Time difference after setting: -30.495434ms
 
 ### High Accuracy Mode
 ```bash
-./ntpcl -s -n europe.pool.ntp.org -h
+./ntpcl --ntp-server europe.pool.ntp.org --high-accuracy --set
 ```
 ```bash
 NTP   : 2024-06-26 23:46:37.747730162 +0300 EEST m=+0.116907113
@@ -86,7 +86,7 @@ Time difference after setting: -4.279286ms
 
 ### Web Time
 ```bash
-./ntpcl -u https://google.com
+./ntpcl --http-server https://google.com
 ```
 ```bash
 Querying time from HTTP server: https://google.com
