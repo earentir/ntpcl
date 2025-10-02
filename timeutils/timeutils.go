@@ -19,6 +19,7 @@ import (
 	"github.com/beevik/ntp"
 	"github.com/fatih/color"
 	"github.com/olekukonko/tablewriter"
+	"github.com/olekukonko/tablewriter/tw"
 )
 
 type sampleResult struct {
@@ -329,9 +330,36 @@ func PrintNTPDetails(method string, serverTime time.Time, rtt time.Duration, ser
 func FormattedOutput(method string, serverTime, localTime time.Time, timeDiff, rtt time.Duration, server string, ntpResponse *ntp.Response) string {
 	var buf bytes.Buffer
 	table := tablewriter.NewWriter(&buf)
-	table.SetHeader([]string{"Property", "Value"})
-	table.SetAlignment(tablewriter.ALIGN_LEFT)
-	table.SetBorder(false)
+	borderlessRendition := tw.Rendition{
+		Borders: tw.Border{
+			Left:   tw.Off,
+			Right:  tw.Off,
+			Top:    tw.Off,
+			Bottom: tw.Off,
+		},
+		Symbols: tw.NewSymbols(tw.StyleNone),
+		Settings: tw.Settings{
+			Lines: tw.Lines{
+				ShowTop:        tw.Off,
+				ShowBottom:     tw.Off,
+				ShowHeaderLine: tw.Off,
+				ShowFooterLine: tw.Off,
+			},
+			Separators: tw.Separators{
+				ShowHeader:     tw.Off,
+				ShowFooter:     tw.Off,
+				BetweenRows:    tw.Off,
+				BetweenColumns: tw.Off,
+			},
+		},
+	}
+
+	table.Options(
+		tablewriter.WithRowAlignment(tw.AlignLeft),
+		tablewriter.WithRendition(borderlessRendition),
+	)
+
+	table.Header("Property", "Value")
 
 	addRow := func(property, value string) {
 		table.Append([]string{property, value})
