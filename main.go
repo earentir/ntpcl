@@ -24,7 +24,7 @@ func main() {
 	var rootOpts commandOptions
 
 	rootCmd := &cobra.Command{
-		Use:     "timeclient",
+		Use:     "ntpcl",
 		Short:   "A simple time client to fetch and optionally set system time",
 		Long:    "A simple time client to fetch and optionally set system time. It can be used to query an NTP server, HTTP server, Daytime Protocol server, or Time Protocol server for the current time and set the system time to the retrieved time.\nhttps://github.com/earentir/ntpcl",
 		Version: "0.4.19",
@@ -36,7 +36,7 @@ func main() {
 	addCommonFlags(rootCmd, &rootOpts)
 	rootCmd.SilenceUsage = true
 	rootCmd.SilenceErrors = true
-	rootCmd.SetVersionTemplate("{{printf \"%s\" .Version}}\n")
+	rootCmd.SetVersionTemplate("{{.CommandPath}} v{{.Version}}\n")
 
 	var ntpOpts commandOptions
 	ntpCmd := &cobra.Command{
