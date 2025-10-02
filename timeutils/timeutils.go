@@ -330,33 +330,34 @@ func PrintNTPDetails(method string, serverTime time.Time, rtt time.Duration, ser
 func FormattedOutput(method string, serverTime, localTime time.Time, timeDiff, rtt time.Duration, server string, ntpResponse *ntp.Response) string {
 	var buf bytes.Buffer
 	table := tablewriter.NewWriter(&buf)
-	borderlessRendition := tw.Rendition{
+	unicodeInterior := tw.Rendition{
 		Borders: tw.Border{
 			Left:   tw.Off,
 			Right:  tw.Off,
 			Top:    tw.Off,
 			Bottom: tw.Off,
 		},
-		Symbols: tw.NewSymbols(tw.StyleNone),
+		Symbols: tw.NewSymbols(tw.StyleLight),
 		Settings: tw.Settings{
 			Lines: tw.Lines{
 				ShowTop:        tw.Off,
 				ShowBottom:     tw.Off,
-				ShowHeaderLine: tw.Off,
+				ShowHeaderLine: tw.On,
 				ShowFooterLine: tw.Off,
 			},
 			Separators: tw.Separators{
 				ShowHeader:     tw.Off,
 				ShowFooter:     tw.Off,
 				BetweenRows:    tw.Off,
-				BetweenColumns: tw.Off,
+				BetweenColumns: tw.On,
 			},
 		},
 	}
 
 	table.Options(
 		tablewriter.WithRowAlignment(tw.AlignLeft),
-		tablewriter.WithRendition(borderlessRendition),
+		tablewriter.WithHeaderAlignment(tw.AlignCenter),
+		tablewriter.WithRendition(unicodeInterior),
 	)
 
 	table.Header("Property", "Value")
