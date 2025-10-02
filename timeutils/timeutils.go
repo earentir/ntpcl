@@ -28,6 +28,21 @@ type sampleResult struct {
 	timestamp time.Time
 }
 
+func medianDuration(values []time.Duration) time.Duration {
+	if len(values) == 0 {
+		return 0
+	}
+	sorted := append([]time.Duration(nil), values...)
+	sort.Slice(sorted, func(i, j int) bool {
+		return sorted[i] < sorted[j]
+	})
+	mid := len(sorted) / 2
+	if len(sorted)%2 == 1 {
+		return sorted[mid]
+	}
+	return (sorted[mid-1] + sorted[mid]) / 2
+}
+
 // FetchTimeFromDaytimeProtocol fetches the time from a server using the Daytime Protocol (RFC 867).
 func FetchTimeFromDaytimeProtocol(server string) (time.Time, time.Duration, error) {
 	start := time.Now()
@@ -186,7 +201,10 @@ func GatherHighAccuracyTime(ntpServerToUse string) (time.Time, error) {
 						time.Sleep(100 * time.Millisecond)
 						continue
 					}
-					rtt := time.Since(start)
+					rtt := resp.RTT
+					if rtt <= 0 {
+						rtt = time.Since(start)
+					}
 					results <- sampleResult{
 						offset:    resp.ClockOffset,
 						rtt:       rtt,
@@ -220,29 +238,29 @@ func GatherHighAccuracyTime(ntpServerToUse string) (time.Time, error) {
 	// Use the median 60% of samples
 	validSamples := samples[sampleCount/5 : 4*sampleCount/5]
 
-	var totalOffset time.Duration
-	var totalRTT time.Duration
+	offsets := make([]time.Duration, len(validSamples))
+	rtts := make([]time.Duration, len(validSamples))
 	var latestTimestamp time.Time
 
-	for _, sample := range validSamples {
-		totalOffset += sample.offset
-		totalRTT += sample.rtt
+	for i, sample := range validSamples {
+		offsets[i] = sample.offset
+		rtts[i] = sample.rtt
 		if sample.timestamp.After(latestTimestamp) {
 			latestTimestamp = sample.timestamp
 		}
 	}
 
-	averageOffset := totalOffset / time.Duration(len(validSamples))
-	averageRTT := totalRTT / time.Duration(len(validSamples))
+	medianOffset := medianDuration(offsets)
+	medianRTT := medianDuration(rtts)
 
 	// Calculate the time elapsed since the latest sample
 	elapsedSinceLastSample := time.Since(latestTimestamp)
 
 	// Adjust the final time calculation
-	adjustedTime := time.Now().Add(averageOffset).Add(-elapsedSinceLastSample)
+	adjustedTime := time.Now().Add(medianOffset)
 
-	fmt.Printf("Average offset: %v\n", averageOffset)
-	fmt.Printf("Average RTT: %v\n", averageRTT)
+	fmt.Printf("Median offset: %v\n", medianOffset)
+	fmt.Printf("Median RTT: %v\n", medianRTT)
 	fmt.Printf("Elapsed since last sample: %v\n", elapsedSinceLastSample)
 	fmt.Printf("Adjusted time: %v\n", adjustedTime)
 
